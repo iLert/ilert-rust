@@ -8,13 +8,13 @@ pub mod ilert_builders;
 mod tests {
 
     use crate::ilert::ILert;
-    use crate::ilert_builders::{UserApiResource, EventApiResource};
-    use crate::ilert_builders::ILertEventType::ALERT;
+    use crate::ilert_builders::{UserApiResource, EventApiResource, ScheduleApiResource};
+    use crate::ilert_builders::ILertEventType;
 
     #[test]
     fn simple_integration_test() {
 
-        let mut client = ILert::new(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
         let user_result = client
@@ -25,10 +25,18 @@ mod tests {
 
         assert_eq!(user_result.status, 200);
 
+        let schedule_result = client
+            .get()
+            .schedule_shifts(99)
+            .execute()
+            .unwrap();
+
+        assert_eq!(schedule_result.status, 404);
+
         let event_result = client
             .post()
-            .events("44c7afdc-0b3e-4344-b48a-5379a963231f",
-            ALERT, "Host srv/mail01 is CRITICAL",
+            .event("44c7afdc-0b3e-4344-b48a-5379a963231f",
+                   ILertEventType::ALERT, "Host srv/mail01 is CRITICAL",
                     None,
                     Some("srv/mail01".to_string()))
             .execute()

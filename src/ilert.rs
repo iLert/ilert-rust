@@ -19,20 +19,23 @@ pub struct ILert {
 
 impl ILert {
 
-    pub fn new(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
+    pub fn new() -> ILertResult<ILert> {
+        let http_client_result = ILert::get_http_client(10);
+        match http_client_result {
+            Err(err) => Err(ILertError::new(err.description())),
+            Ok(http_client) => Ok(ILert {
+                host: "https://ilertnow.com".to_string(),
+                api_ep: "/api/v1".to_string(),
+                api_token: None,
+                auth_user: None,
+                auth_psw: None,
+                http_client,
+            })
+        }
+    }
 
-        let mut headers = HeaderMap::new();
-        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.0.1").unwrap());
-        headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
-        headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
-
-        let http_client_result = reqwest::Client::builder()
-            .gzip(true)
-            .timeout(Duration::from_secs(timeout_sec.unwrap_or(10)))
-            .redirect(RedirectPolicy::none())
-            .default_headers(headers)
-            .build();
-
+    pub fn new_with_opts(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
+        let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(10));
         match http_client_result {
             Err(err) => Err(ILertError::new(err.description())),
             Ok(http_client) => Ok(ILert {
@@ -46,7 +49,28 @@ impl ILert {
         }
     }
 
-    pub fn auth_via_key(&mut self, api_token: &str) -> ILertResult<&mut ILert> {
+    fn get_default_headers() -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.0.1").unwrap());
+        headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
+        headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
+        headers
+    }
+
+    fn get_http_client(timeout_sec: u64) -> reqwest::Result<Client> {
+
+        let headers = ILert::get_default_headers();
+        let http_client_result = reqwest::Client::builder()
+            .gzip(true)
+            .timeout(Duration::from_secs(timeout_sec))
+            .redirect(RedirectPolicy::none())
+            .default_headers(headers)
+            .build();
+
+        http_client_result
+    }
+
+    pub fn auth_via_token(&mut self, api_token: &str) -> ILertResult<&mut ILert> {
         self.api_token = Some(api_token.to_string());
         Ok(self)
     }

@@ -5,7 +5,7 @@ pub type ILertResult<T> = Result<T, ILertError>;
 
 #[derive(Debug)]
 pub struct ILertError {
-    message: String
+    pub message: String
 }
 
 impl ILertError {

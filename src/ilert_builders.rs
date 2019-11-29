@@ -23,6 +23,15 @@ impl ILertEventType {
             &ILertEventType::RESOLVE => "RESOLVE",
         }
     }
+
+    pub fn from_str(val: &str) -> ILertResult<ILertEventType> {
+        match val {
+            "ALERT" => Ok(ILertEventType::ALERT),
+            "ACCEPT" => Ok(ILertEventType::ACCEPT),
+            "RESOLVE" => Ok(ILertEventType::RESOLVE),
+            _ => Err(ILertError::new("Unsupported type value.")),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -128,21 +137,6 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
     Ok(options)
 }
 
-fn prepare_generic_request_builder_no_auth (builder: &BaseRequestBuilder) -> ILertResult<BaseRequestOptions> {
-
-    let ilertref = builder._ilert;
-    let mut options = builder.options.clone();
-
-    if builder.options.path.is_none() {
-        return Err(ILertError::new("Failed to build url, path missing."));
-    }
-
-    let url = ilertref.build_url(builder.options.path.as_ref().unwrap().as_str());
-    options.url = Some(url);
-
-    Ok(options)
-}
-
 /* ### API Implementations ### */
 
 pub trait UserApiResource {
@@ -157,7 +151,8 @@ pub trait ScheduleApiResource {
 }
 
 pub trait EventApiResource {
-    fn events(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
+        details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
 }
 
 /* ### GET ### */
@@ -291,7 +286,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
     fn execute(&self) -> ILertResult<BaseRequestResult> {
 
-        let options_result = prepare_generic_request_builder_no_auth(&self.builder);
+        let options_result = prepare_generic_request_builder(&self.builder);
         if options_result.is_err() {
             return Err(options_result.unwrap_err());
         }
@@ -357,7 +352,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
 impl EventApiResource for PostRequestBuilder<'_> {
 
-    fn events(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
         let json_body = json!({
             "apiKey": api_key,
