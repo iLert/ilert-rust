@@ -40,7 +40,7 @@ let user_result = client
 
 We are happy to respond to [GitHub issues][issues] as well.
 
-[issues]: https://github.com/iLert/ilert-rust/issues/new/choose
+[issues]: https://github.com/iLert/ilert-rust/issues/new
 
 <br>
 
