@@ -12,7 +12,7 @@
 
 ```rust
 use ilert::ilert::ILert;
-use ilert::ilert_builders::{EventApiResource, ILertEventType};
+use ilert::ilert_builders::{UserApiResource, EventApiResource, ILertEventType};
 
 let mut client = ILert::new().unwrap();
 client.auth_via_token("your-api-token").unwrap();

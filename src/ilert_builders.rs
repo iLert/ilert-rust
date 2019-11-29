@@ -180,7 +180,6 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             return Err(options_result.unwrap_err());
         }
         let options = options_result.unwrap();
-        dbg!(options.clone());
 
         if options.url.is_none() {
             return Err(ILertError::new("Failed to build url."));
@@ -225,13 +224,13 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             None => None,
         };
 
-        dbg!(Ok(BaseRequestResult::new(
+        Ok(BaseRequestResult::new(
             url,
             response.status(),
             response.headers().clone(),
             body_raw,
             body_json,
-        )))
+        ))
     }
 }
 
@@ -291,7 +290,6 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
             return Err(options_result.unwrap_err());
         }
         let options = options_result.unwrap();
-        dbg!(options.clone());
 
         if options.url.is_none() {
             return Err(ILertError::new("Failed to build url."));
@@ -340,13 +338,13 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
             None => None,
         };
 
-        dbg!(Ok(BaseRequestResult::new(
+        Ok(BaseRequestResult::new(
             url,
             response.status(),
             response.headers().clone(),
             body_raw,
             body_json,
-        )))
+        ))
     }
 }
 
