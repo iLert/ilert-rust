@@ -11,16 +11,15 @@
 ## In action
 
 ```rust
-use ilert::ILert;
-use ilert_builders::{EventApiResource};
-use ilert_builders::ILertEventType;
+use ilert::ilert::ILert;
+use ilert::ilert_builders::{EventApiResource, ILertEventType};
 
 let mut client = ILert::new().unwrap();
 client.auth_via_token("your-api-token").unwrap();
 
 let event_result = client
     .post()
-    .events(
+    .event(
         "44c7afdc-0b3e-4344-b48a-5379a963231f",
         ILertEventType::ALERT,
         "Host srv/mail01 is CRITICAL",
