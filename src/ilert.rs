@@ -1,0 +1,71 @@
+use reqwest::{Client, RedirectPolicy};
+use reqwest::header;
+use std::time::Duration;
+
+use crate::ilert_builders::{GetRequestBuilder, PostRequestBuilder};
+use crate::ilert_error::{ILertResult, ILertError};
+use reqwest::header::{HeaderMap, HeaderValue};
+use std::error::Error;
+
+#[derive(Debug, Clone)]
+pub struct ILert {
+    host: String,
+    api_ep: String,
+    pub api_token: Option<String>,
+    pub auth_user: Option<String>,
+    pub auth_psw: Option<String>,
+    pub http_client: Client,
+}
+
+impl ILert {
+
+    pub fn new(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
+
+        let mut headers = HeaderMap::new();
+        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.0.1").unwrap());
+        headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
+        headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
+
+        let http_client_result = reqwest::Client::builder()
+            .gzip(true)
+            .timeout(Duration::from_secs(timeout_sec.unwrap_or(10)))
+            .redirect(RedirectPolicy::none())
+            .default_headers(headers)
+            .build();
+
+        match http_client_result {
+            Err(err) => Err(ILertError::new(err.description())),
+            Ok(http_client) => Ok(ILert {
+                host: host.unwrap_or("https://ilertnow.com").to_string(),
+                api_ep: "/api/v1".to_string(),
+                api_token: None,
+                auth_user: None,
+                auth_psw: None,
+                http_client,
+            })
+        }
+    }
+
+    pub fn auth_via_key(&mut self, api_token: &str) -> ILertResult<&mut ILert> {
+        self.api_token = Some(api_token.to_string());
+        Ok(self)
+    }
+
+    pub fn auth_via_user(&mut self, auth_user: &str, auth_psw: &str) -> ILertResult<&mut ILert> {
+        self.auth_user = Some(auth_user.to_string());
+        self.auth_psw = Some(auth_psw.to_string());
+        Ok(self)
+    }
+
+    pub fn build_url(&self, path: &str) -> String {
+        format!("{}{}{}", self.host.as_str(), self.api_ep.as_str(), path)
+    }
+
+    pub fn get(&self) -> GetRequestBuilder {
+        GetRequestBuilder::new(self)
+    }
+
+    pub fn post(&self) -> PostRequestBuilder {
+        PostRequestBuilder::new(self, "{}")
+    }
+}

@@ -1,0 +1,18 @@
+[package]
+name = "ilert"
+version = "0.0.1"
+authors = ["Christian Froehlingsdorf <cff@ilert.de>"]
+edition = "2018"
+description = "The official iLert api bindings."
+keywords = ["ilert", "http", "api", "client"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://ilert.de"
+documentation = "https://github.com/iLert/ilert-rust"
+repository = "https://github.com/iLert/ilert-rust"
+categories = ["api-bindings"]
+
+[dependencies]
+reqwest = "0.9.22"
+base64 = "0.11.0"
+serde_json = "1.0.42"
