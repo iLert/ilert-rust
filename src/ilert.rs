@@ -22,7 +22,7 @@ impl ILert {
     pub fn new() -> ILertResult<ILert> {
         let http_client_result = ILert::get_http_client(10);
         match http_client_result {
-            Err(err) => Err(ILertError::new(err.description())),
+            Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
                 host: "https://ilertnow.com".to_string(),
                 api_ep: "/api/v1".to_string(),
@@ -37,7 +37,7 @@ impl ILert {
     pub fn new_with_opts(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
         let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(10));
         match http_client_result {
-            Err(err) => Err(ILertError::new(err.description())),
+            Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
                 host: host.unwrap_or("https://ilertnow.com").to_string(),
                 api_ep: "/api/v1".to_string(),

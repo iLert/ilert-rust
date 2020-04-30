@@ -194,7 +194,7 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
         let mut response = match response_result {
             Ok(value) => value,
             Err(err) => {
-                return Err(ILertError::new(err.description()));
+                return Err(ILertError::new(err.to_string().as_str()));
             },
         };
 
@@ -213,7 +213,7 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
                             match parsed_json_result {
                                 Ok(parsed_json) => Some(parsed_json),
                                 Err(err) => {
-                                    return Err(ILertError::new(err.description()));
+                                    return Err(ILertError::new(err.to_string().as_str()));
                                 },
                             }
                         } else {
@@ -308,7 +308,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
         let mut response = match response_result.send() {
             Ok(value) => value,
             Err(err) => {
-                return Err(ILertError::new(err.description()));
+                return Err(ILertError::new(err.to_string().as_str()));
             },
         };
 
@@ -327,7 +327,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
                             match parsed_json_result {
                                 Ok(parsed_json) => Some(parsed_json),
                                 Err(err) => {
-                                    return Err(ILertError::new(err.description()));
+                                    return Err(ILertError::new(err.to_string().as_str()));
                                 },
                             }
                         } else {

@@ -20,7 +20,7 @@ client.auth_via_token("your-api-token").unwrap();
 let event_result = client
     .post()
     .event(
-        "44c7afdc-0b3e-4344-b48a-5379a963231f",
+        "44c7afdc-0b3e-4344-b48a-5378a963231f",
         ILertEventType::ALERT,
         "Host srv/mail01 is CRITICAL",
         None,
