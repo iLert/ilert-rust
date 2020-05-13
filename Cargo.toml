@@ -1,7 +1,7 @@
 [package]
 name = "ilert"
 version = "0.2.3"
-authors = ["Christian Froehlingsdorf <cff@ilert.de>"]
+authors = ["Christian Froehlingsdorf <chris@ilert.com>"]
 edition = "2018"
 description = "The official iLert api bindings."
 keywords = ["ilert", "http", "api", "client", "rest"]
