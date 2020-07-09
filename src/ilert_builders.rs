@@ -139,6 +139,10 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
 
 /* ### API Implementations ### */
 
+pub trait HeartbeatApiResource {
+    fn heartbeat(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor>;
+}
+
 pub trait UserApiResource {
     fn users(&mut self) -> Box<&dyn BaseRequestExecutor>;
     fn user(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
@@ -231,6 +235,14 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             body_raw,
             body_json,
         ))
+    }
+}
+
+impl HeartbeatApiResource for GetRequestBuilder<'_> {
+
+    fn heartbeat(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/heartbeats/{}", key).as_str());
+        Box::new(self)
     }
 }
 

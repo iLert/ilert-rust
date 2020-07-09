@@ -24,7 +24,7 @@ impl ILert {
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
-                host: "https://ilertnow.com".to_string(),
+                host: "https://api.ilert.com".to_string(),
                 api_ep: "/api/v1".to_string(),
                 api_token: None,
                 auth_user: None,
@@ -39,7 +39,7 @@ impl ILert {
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
-                host: host.unwrap_or("https://ilertnow.com").to_string(),
+                host: host.unwrap_or("https://api.ilert.com").to_string(),
                 api_ep: "/api/v1".to_string(),
                 api_token: None,
                 auth_user: None,
@@ -51,7 +51,7 @@ impl ILert {
 
     fn get_default_headers() -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.0.1").unwrap());
+        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.3.0").unwrap());
         headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
         headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
         headers
