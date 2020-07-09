@@ -17,22 +17,27 @@ use ilert::ilert_builders::{UserApiResource, EventApiResource, ILertEventType};
 let mut client = ILert::new().unwrap();
 client.auth_via_token("your-api-token").unwrap();
 
-let event_result = client
+// create a new incident
+client
     .post()
     .event(
         "44c7afdc-0b3e-4344-b48a-5378a963231f",
         ILertEventType::ALERT,
-        "Host srv/mail01 is CRITICAL",
-        None,
-        None)
-    .execute()
-    .unwrap();
+        "Host srv/mail01 is CRITICAL", None, None)
+    .execute();
 
+// fetch users
 let user_result = client
     .get()
     .users()
     .execute()
     .unwrap();
+
+// ping a heartbeat
+client
+    .get()
+    .heartbeat("43c7afdc-0b3e-4344-b48a-5379a963241f")
+    .execute();
 ```
 
 ## Getting help

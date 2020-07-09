@@ -4,6 +4,8 @@
 
 * moved to new domain
 * added heartbeat
+* upgraded deps
+* added debug log to urls
 
 ## 2020-05-13, Version 0.2.3
 
