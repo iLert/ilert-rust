@@ -12,6 +12,11 @@ mod tests {
     use crate::ilert_builders::ILertEventType;
 
     #[test]
+    fn init() -> () {
+        env_logger::init();
+    }
+
+    #[test]
     fn user_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
@@ -42,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn create_event_test() {
+    fn create_and_resolve_event_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
 
@@ -51,28 +56,22 @@ mod tests {
             .event("il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                    ILertEventType::ALERT, "Host srv/mail01 is CRITICAL",
                     None,
-                    None)
+                    Some("bratwurst".to_string()))
             .execute()
             .unwrap();
 
         assert_eq!(event_result.status, 200);
-    }
 
-    #[test]
-    fn resolve_event_test() {
-
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
-
-        let event_result = client
+        let resolve_result = client
             .post()
             .event("il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                    ILertEventType::RESOLVE, "Host srv/mail01 is CRITICAL",
                     None,
-                    None)
+                    Some("bratwurst".to_string()))
             .execute()
             .unwrap();
 
-        assert_eq!(event_result.status, 200);
+        assert_eq!(resolve_result.status, 200);
     }
 
     #[test]

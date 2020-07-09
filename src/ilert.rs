@@ -1,6 +1,7 @@
 use reqwest::{Client, RedirectPolicy};
 use reqwest::header;
 use std::time::Duration;
+use log::{debug};
 
 use crate::ilert_builders::{GetRequestBuilder, PostRequestBuilder};
 use crate::ilert_error::{ILertResult, ILertError};
@@ -82,7 +83,9 @@ impl ILert {
     }
 
     pub fn build_url(&self, path: &str) -> String {
-        format!("{}{}{}", self.host.as_str(), self.api_ep.as_str(), path)
+        let url = format!("{}{}{}", self.host.as_str(), self.api_ep.as_str(), path);
+        debug!("{}", url);
+        url
     }
 
     pub fn get(&self) -> GetRequestBuilder {
