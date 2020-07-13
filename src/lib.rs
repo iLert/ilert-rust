@@ -7,9 +7,18 @@ pub mod ilert_builders;
 #[cfg(test)]
 mod tests {
 
+    use serde_json::json;
+
     use crate::ilert::ILert;
-    use crate::ilert_builders::{UserApiResource, EventApiResource, ScheduleApiResource, HeartbeatApiResource};
-    use crate::ilert_builders::ILertEventType;
+    use crate::ilert_builders::{
+        UserApiResource,
+        EventApiResource,
+        ScheduleApiResource, 
+        HeartbeatApiResource,
+        ILertEventType,
+        ILertPriority,
+        EventImage
+    };
 
     #[test]
     fn init() -> () {
@@ -53,10 +62,16 @@ mod tests {
 
         let event_result = client
             .post()
-            .event("il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
-                   ILertEventType::ALERT, "Host srv/mail01 is CRITICAL",
-                    None,
-                    Some("bratwurst".to_string()))
+            .event_with_details(
+                "il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
+                ILertEventType::ALERT, "Host srv/mail01 is CRITICAL",
+                Some("bratwurst".to_string()),
+                Some("some detail message".to_string()),
+                Some(ILertPriority::LOW),
+                Some(vec![EventImage::new("https://i.giphy.com/media/VRhsYYBw8AE36/giphy.webp")]),
+                Some(vec![]),
+                Some(json!({"hehe": "test"}))
+            )
             .execute()
             .unwrap();
 
@@ -66,7 +81,6 @@ mod tests {
             .post()
             .event("il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                    ILertEventType::RESOLVE, "Host srv/mail01 is CRITICAL",
-                    None,
                     Some("bratwurst".to_string()))
             .execute()
             .unwrap();

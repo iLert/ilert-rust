@@ -23,7 +23,7 @@ client
     .event(
         "44c7afdc-0b3e-4344-b48a-5378a963231f",
         ILertEventType::ALERT,
-        "Host srv/mail01 is CRITICAL", None, None)
+        "Host srv/mail01 is CRITICAL", None)
     .execute();
 
 // fetch users

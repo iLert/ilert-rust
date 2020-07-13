@@ -3,6 +3,7 @@ use base64;
 use reqwest::StatusCode;
 use serde_json::{Result, Value};
 use serde_json::json;
+use serde_derive::{Deserialize, Serialize};
 
 use crate::ilert::ILert;
 use crate::ilert_error::{ILertResult, ILertError};
@@ -12,6 +13,43 @@ pub enum ILertEventType {
     ALERT,
     ACCEPT,
     RESOLVE,
+}
+
+pub enum ILertPriority {
+    HIGH,
+    LOW,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EventImage {
+    pub src: String,
+    pub href: Option<String>,
+    pub alt: Option<String>
+}
+
+impl EventImage {
+    pub fn new(src: &str) -> EventImage {
+        EventImage {
+            src: src.to_string(),
+            href: None,
+            alt: None
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EventLink {
+    pub href: String,
+    pub text: Option<String>
+}
+
+impl EventLink {
+    pub fn new(src: &str) -> EventLink {
+        EventLink {
+            href: src.to_string(),
+            text: None
+        }
+    }
 }
 
 impl ILertEventType {
@@ -29,6 +67,24 @@ impl ILertEventType {
             "ALERT" => Ok(ILertEventType::ALERT),
             "ACCEPT" => Ok(ILertEventType::ACCEPT),
             "RESOLVE" => Ok(ILertEventType::RESOLVE),
+            _ => Err(ILertError::new("Unsupported type value.")),
+        }
+    }
+}
+
+impl ILertPriority {
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            &ILertPriority::HIGH => "HIGH",
+            &ILertPriority::LOW => "LOW",
+        }
+    }
+
+    pub fn from_str(val: &str) -> ILertResult<ILertPriority> {
+        match val {
+            "HIGH" => Ok(ILertPriority::HIGH),
+            "LOW" => Ok(ILertPriority::LOW),
             _ => Err(ILertError::new("Unsupported type value.")),
         }
     }
@@ -155,8 +211,12 @@ pub trait ScheduleApiResource {
 }
 
 pub trait EventApiResource {
-    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
-        details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+
+    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
+            incident_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
+            links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>) -> Box<&dyn BaseRequestExecutor>;
 }
 
 /* ### GET ### */
@@ -362,14 +422,39 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
 impl EventApiResource for PostRequestBuilder<'_> {
 
-    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, details: Option<String>, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
         let json_body = json!({
             "apiKey": api_key,
             "eventType": event_type.as_str(),
             "summary": summary,
-            "details": details,
+            "incidentKey": incident_key
+        });
+
+        self.builder.set_path("/events");
+        self.builder.set_body(json_body.to_string().as_str());
+        Box::new(self)
+    }
+
+    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
+        incident_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
+        links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>) -> Box<&dyn BaseRequestExecutor> {
+
+        let priority = match priority {
+            Some(e_val) => Some(e_val.as_str().to_string()),
+            None => None
+        };
+
+        let json_body = json!({
+            "apiKey": api_key,
+            "eventType": event_type.as_str(),
+            "summary": summary,
             "incidentKey": incident_key,
+            "details": details,
+            "priority": priority,
+            "images": images,
+            "links": links,
+            "customDetails": custom_details,
         });
 
         self.builder.set_path("/events");

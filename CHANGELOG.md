@@ -1,5 +1,10 @@
 # ilert-rust CHANGELOG
 
+## 2020-07-13, Version 1.0.0
+
+* **BREAKING** event split into event, event_with_details
+* event_with_details allows for full event including priority, links, images and custom details
+
 ## 2020-07-09, Version 0.3.0
 
 * moved to new domain
