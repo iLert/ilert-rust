@@ -1,4 +1,6 @@
-use reqwest::{Client, RedirectPolicy};
+use reqwest::blocking::Client;
+use reqwest::redirect::Policy;
+use reqwest::ClientBuilder;
 use reqwest::header;
 use std::time::Duration;
 use log::{debug};
@@ -61,10 +63,9 @@ impl ILert {
     fn get_http_client(timeout_sec: u64) -> reqwest::Result<Client> {
 
         let headers = ILert::get_default_headers();
-        let http_client_result = reqwest::Client::builder()
-            .gzip(true)
+        let http_client_result = reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(timeout_sec))
-            .redirect(RedirectPolicy::none())
+            .redirect(Policy::none())
             .default_headers(headers)
             .build();
 

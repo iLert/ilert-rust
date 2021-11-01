@@ -282,15 +282,17 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             },
         };
 
-        let body_result = response.text();
-        let body_raw = match body_result {
-            Ok(value) => Some(value),
+        let response_status = response.status().clone();
+        let response_headers = response.headers().clone();
+
+        let body_raw = match response.text() {
+            Ok(value) => Some(value.clone()),
             Err(_) => None,
         };
 
         let body_json = match body_raw.clone() {
             Some(raw_value) =>
-                match response.headers().get("content-type") {
+                match response_headers.get("content-type") {
                     Some(ct_value) =>
                         if ct_value.eq(&"application/json") {
                             let parsed_json_result = serde_json::from_str(raw_value.as_str());
@@ -310,8 +312,8 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
 
         Ok(BaseRequestResult::new(
             url,
-            response.status(),
-            response.headers().clone(),
+            response_status,
+            response_headers,
             body_raw,
             body_json,
         ))
@@ -404,15 +406,17 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
             },
         };
 
-        let body_result = response.text();
-        let body_raw = match body_result {
+        let response_status = response.status().clone();
+        let response_headers = response.headers().clone();
+
+        let body_raw = match response.text() {
             Ok(value) => Some(value),
             Err(_) => None,
         };
 
         let body_json = match body_raw.clone() {
             Some(raw_value) =>
-                match response.headers().get("content-type") {
+                match response_headers.get("content-type") {
                     Some(ct_value) =>
                         if ct_value.eq(&"application/json") {
                             let parsed_json_result = serde_json::from_str(raw_value.as_str());
@@ -432,8 +436,8 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
         Ok(BaseRequestResult::new(
             url,
-            response.status(),
-            response.headers().clone(),
+            response_status,
+            response_headers,
             body_raw,
             body_json,
         ))
