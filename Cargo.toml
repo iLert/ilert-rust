@@ -1,13 +1,13 @@
 [package]
 name = "ilert"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Christian Froehlingsdorf <chris@ilert.com>"]
 edition = "2018"
 description = "The official iLert api bindings."
 keywords = ["ilert", "client", "alerting", "monitoring", "oncall"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://ilert.de"
+homepage = "https://ilert.com"
 documentation = "https://docs.rs/ilert"
 repository = "https://github.com/iLert/ilert-rust"
 categories = ["api-bindings"]

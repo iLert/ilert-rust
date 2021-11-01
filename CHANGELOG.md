@@ -1,5 +1,13 @@
 # ilert-rust CHANGELOG
 
+## 2021-11-01, Version 2.0.0
+
+* **BREAKING** adjusted client to the new iLert API version `/api/v1` -> `/api`
+* **BREAKING** incident_key has been renamed to alert_key
+* **BREAKING** event property summary moved from &str -> Option<String>
+* added new COMMENT event type
+* added new event properties comments and routing_key
+
 ## 2020-07-13, Version 1.0.0
 
 * **BREAKING** event split into event, event_with_details

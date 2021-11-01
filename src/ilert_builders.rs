@@ -13,6 +13,7 @@ pub enum ILertEventType {
     ALERT,
     ACCEPT,
     RESOLVE,
+    COMMENT
 }
 
 pub enum ILertPriority {
@@ -52,6 +53,21 @@ impl EventLink {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EventComment {
+    pub creator: String,
+    pub content: String
+}
+
+impl EventComment {
+    pub fn new(creator: &str, content: &str) -> EventComment {
+        EventComment {
+            creator: creator.to_string(),
+            content: content.to_string()
+        }
+    }
+}
+
 impl ILertEventType {
 
     pub fn as_str(&self) -> &str {
@@ -59,6 +75,7 @@ impl ILertEventType {
             &ILertEventType::ALERT => "ALERT",
             &ILertEventType::ACCEPT => "ACCEPT",
             &ILertEventType::RESOLVE => "RESOLVE",
+            &ILertEventType::COMMENT => "COMMENT",
         }
     }
 
@@ -67,6 +84,7 @@ impl ILertEventType {
             "ALERT" => Ok(ILertEventType::ALERT),
             "ACCEPT" => Ok(ILertEventType::ACCEPT),
             "RESOLVE" => Ok(ILertEventType::RESOLVE),
+            "COMMENT" => Ok(ILertEventType::COMMENT),
             _ => Err(ILertError::new("Unsupported type value.")),
         }
     }
@@ -173,7 +191,7 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
 
     match ilertref.api_token.clone() {
         Some(token) => options.headers
-            .append("X-Api-Key", HeaderValue::from_str(token.as_str()).unwrap()),
+            .append("Authorization", HeaderValue::from_str(format!("Bearer {}", token).as_str()).unwrap()),
         None => false,
     };
 
@@ -212,11 +230,13 @@ pub trait ScheduleApiResource {
 
 pub trait EventApiResource {
 
-    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>, alert_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
 
-    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
-            incident_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
-            links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>) -> Box<&dyn BaseRequestExecutor>;
+    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>,
+            alert_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
+            links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+
+    fn event_with_comment(&mut self, api_key: &str, alert_key: Option<String>, comments: Option<Vec<EventComment>>) -> Box<&dyn BaseRequestExecutor>;
 }
 
 /* ### GET ### */
@@ -422,13 +442,13 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
 impl EventApiResource for PostRequestBuilder<'_> {
 
-    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: &str, incident_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
+    fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>, alert_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
         let json_body = json!({
             "apiKey": api_key,
             "eventType": event_type.as_str(),
             "summary": summary,
-            "incidentKey": incident_key
+            "alertKey": alert_key
         });
 
         self.builder.set_path("/events");
@@ -436,9 +456,9 @@ impl EventApiResource for PostRequestBuilder<'_> {
         Box::new(self)
     }
 
-    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: &str,
-        incident_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
-        links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>) -> Box<&dyn BaseRequestExecutor> {
+    fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>,
+                          alert_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
+        links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
         let priority = match priority {
             Some(e_val) => Some(e_val.as_str().to_string()),
@@ -449,12 +469,27 @@ impl EventApiResource for PostRequestBuilder<'_> {
             "apiKey": api_key,
             "eventType": event_type.as_str(),
             "summary": summary,
-            "incidentKey": incident_key,
+            "alertKey": alert_key,
             "details": details,
             "priority": priority,
             "images": images,
             "links": links,
             "customDetails": custom_details,
+            "routingKey": routing_key
+        });
+
+        self.builder.set_path("/events");
+        self.builder.set_body(json_body.to_string().as_str());
+        Box::new(self)
+    }
+
+    fn event_with_comment(&mut self, api_key: &str, alert_key: Option<String>, comments: Option<Vec<EventComment>>) -> Box<&dyn BaseRequestExecutor> {
+
+        let json_body = json!({
+            "apiKey": api_key,
+            "eventType": ILertEventType::COMMENT.as_str(),
+            "alertKey": alert_key,
+            "comments": comments,
         });
 
         self.builder.set_path("/events");
