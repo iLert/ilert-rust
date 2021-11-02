@@ -6,7 +6,7 @@
 [Rust 1.13]: https://blog.rust-lang.org/2016/11/10/Rust-1.13.html
 [Rust 1.31]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
 
-**The official iLert api bindings.**
+**The official iLert API bindings.**
 
 ## In action
 
