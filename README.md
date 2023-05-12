@@ -27,6 +27,22 @@ client
         "Host srv/mail01 is CRITICAL", None)
     .execute();
 
+// accept alert
+
+let accept_result = client
+    .update()
+    .accept_alert(123)
+    .execute()
+    .unwrap();
+
+// resolve alert
+
+let resolve_result = client
+    .update()
+    .resolve_alert(123)
+    .execute()
+    .unwrap();
+
 // fetch users
 
 let user_result = client

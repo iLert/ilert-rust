@@ -10,9 +10,7 @@ mod tests {
     use serde_json::json;
 
     use crate::ilert::ILert;
-    use crate::ilert_builders::{UserGetApiResource, EventApiResource, ScheduleGetApiResource,
-                                HeartbeatApiResource, ILertEventType, ILertPriority, EventImage,
-                                EventComment, AlertGetApiResource};
+    use crate::ilert_builders::{UserGetApiResource, EventApiResource, ScheduleGetApiResource, HeartbeatApiResource, ILertEventType, ILertPriority, EventImage, EventComment, AlertGetApiResource, AlertPutApiResource};
 
     #[test]
     fn init() -> () {
@@ -25,7 +23,7 @@ mod tests {
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
-        let mut user_result = client
+        let user_result = client
             .get()
             .skip(0)
             .limit(10)
@@ -42,7 +40,7 @@ mod tests {
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
-        let mut alert_result = client
+        let alert_result = client
             .get()
             .skip(0)
             .limit(10)

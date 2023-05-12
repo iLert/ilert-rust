@@ -1,5 +1,9 @@
 # ilert-rust CHANGELOG
 
+## 2023-05-13, Version 3.1.0
+
+* added alert accept and resolve operations
+
 ## 2023-05-12, Version 3.0.0
 
 * updated dependencies

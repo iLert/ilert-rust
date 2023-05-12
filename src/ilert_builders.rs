@@ -260,6 +260,8 @@ pub trait AlertGetApiResource {
 pub trait AlertPutApiResource {
     // alert_raw() leaving alert() open for a typed implementation
     fn alert_raw(&mut self, id: i64, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+    fn accept_alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+    fn resolve_alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
 }
 
 /* ### INCIDENTS ### */
@@ -733,6 +735,16 @@ impl AlertPutApiResource for PutRequestBuilder<'_> {
     fn alert_raw(&mut self, id: i64, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
         self.builder.set_path(format!("/alerts/{}", id).as_str());
         self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+
+    fn accept_alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/alerts/{}/accept", id).as_str());
+        Box::new(self)
+    }
+
+    fn resolve_alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/alerts/{}/resolve", id).as_str());
         Box::new(self)
     }
 }
