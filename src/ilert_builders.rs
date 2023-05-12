@@ -135,7 +135,8 @@ struct BaseRequestBuilder<'a> {
     _ilert: &'a ILert,
     options: BaseRequestOptions,
     start_index: Option<i64>,
-    max_results: Option<i32>
+    max_results: Option<i32>,
+    filters: Option<Vec<(String, String)>>
 }
 
 impl<'a> BaseRequestBuilder<'a> {
@@ -145,7 +146,8 @@ impl<'a> BaseRequestBuilder<'a> {
             _ilert,
             options: BaseRequestOptions::new(),
             start_index: None,
-            max_results: None
+            max_results: None,
+            filters: None
         }
     }
 
@@ -155,6 +157,15 @@ impl<'a> BaseRequestBuilder<'a> {
 
     fn set_body(&mut self, body: &str) -> () {
         self.options.body = Some(body.to_string());
+    }
+
+    fn add_filter(&mut self, key: &str, val: &str) -> () {
+
+        if self.filters.is_none() {
+            self.filters = Some(Vec::new());
+        }
+
+        self.filters.as_mut().unwrap().push((key.to_string(), val.to_string()));
     }
 }
 
@@ -330,6 +341,11 @@ impl<'a> GetRequestBuilder<'a> {
         self.builder.max_results = Some(max_results);
         self
     }
+
+    pub fn filter(mut self, key: &str, val: &str) -> Self {
+        self.builder.add_filter(key, val);
+        self
+    }
 }
 
 impl BaseRequestExecutor for GetRequestBuilder<'_> {
@@ -357,6 +373,10 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
 
         if let Some(max_results) = self.builder.max_results {
             request_builder = request_builder.query(&[("max-results", max_results)]);
+        }
+
+        if let Some(filters) = &self.builder.filters {
+            request_builder = request_builder.query(filters);
         }
 
         let response_result = request_builder.send();

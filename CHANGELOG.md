@@ -1,5 +1,9 @@
 # ilert-rust CHANGELOG
 
+## 2023-05-13, Version 3.2.0
+
+* added filter(key, val) option for all get operations
+
 ## 2023-05-13, Version 3.1.0
 
 * added alert accept and resolve operations

@@ -44,6 +44,8 @@ mod tests {
             .get()
             .skip(0)
             .limit(10)
+            .filter("states", "ACCEPTED")
+            .filter("states", "RESOLVED")
             .alerts()
             .execute()
             .unwrap();
