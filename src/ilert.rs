@@ -5,7 +5,7 @@ use reqwest::header;
 use std::time::Duration;
 use log::{debug};
 
-use crate::ilert_builders::{GetRequestBuilder, PostRequestBuilder};
+use crate::ilert_builders::{DeleteRequestBuilder, GetRequestBuilder, PostRequestBuilder, PutRequestBuilder};
 use crate::ilert_error::{ILertResult, ILertError};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
@@ -23,7 +23,7 @@ pub struct ILert {
 impl ILert {
 
     pub fn new() -> ILertResult<ILert> {
-        let http_client_result = ILert::get_http_client(10);
+        let http_client_result = ILert::get_http_client(25);
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
@@ -38,7 +38,7 @@ impl ILert {
     }
 
     pub fn new_with_opts(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
-        let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(10));
+        let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(25));
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
@@ -54,7 +54,7 @@ impl ILert {
 
     fn get_default_headers() -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/0.4.0").unwrap());
+        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/3.0.0").unwrap());
         headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
         headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
         headers
@@ -93,7 +93,20 @@ impl ILert {
         GetRequestBuilder::new(self)
     }
 
+    #[deprecated(since="3.0.0", note="please use `create()` instead")]
     pub fn post(&self) -> PostRequestBuilder {
         PostRequestBuilder::new(self, "{}")
+    }
+
+    pub fn create(&self) -> PostRequestBuilder {
+        PostRequestBuilder::new(self, "{}")
+    }
+
+    pub fn update(&self) -> PutRequestBuilder {
+        PutRequestBuilder::new(self, "{}")
+    }
+
+    pub fn delete(&self) -> DeleteRequestBuilder {
+        DeleteRequestBuilder::new(self)
     }
 }

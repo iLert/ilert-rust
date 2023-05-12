@@ -1,10 +1,10 @@
 [package]
 name = "ilert"
-version = "2.0.0"
+version = "3.0.0"
 authors = ["Christian Froehlingsdorf <chris@ilert.com>"]
-edition = "2018"
-description = "The official iLert api bindings."
-keywords = ["ilert", "client", "alerting", "monitoring", "oncall"]
+edition = "2021"
+description = "The official ilert api bindings."
+keywords = ["ilert", "client", "alerting", "incident-communication", "oncall"]
 readme = "README.md"
 license = "MIT"
 homepage = "https://ilert.com"
@@ -14,9 +14,9 @@ categories = ["api-bindings"]
 
 [dependencies]
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-base64 = "0.13.0"
+base64 = "0.21"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
-log = "0.4.14"
-env_logger = "0.9.0"
+log = "0.4"
+env_logger = "0.10"

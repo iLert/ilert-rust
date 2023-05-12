@@ -10,7 +10,9 @@ mod tests {
     use serde_json::json;
 
     use crate::ilert::ILert;
-    use crate::ilert_builders::{UserApiResource, EventApiResource, ScheduleApiResource, HeartbeatApiResource, ILertEventType, ILertPriority, EventImage, EventComment};
+    use crate::ilert_builders::{UserGetApiResource, EventApiResource, ScheduleGetApiResource,
+                                HeartbeatApiResource, ILertEventType, ILertPriority, EventImage,
+                                EventComment, AlertGetApiResource};
 
     #[test]
     fn init() -> () {
@@ -23,13 +25,32 @@ mod tests {
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
-        let user_result = client
+        let mut user_result = client
             .get()
+            .skip(0)
+            .limit(10)
             .users()
             .execute()
             .unwrap();
 
         assert_eq!(user_result.status, 200);
+    }
+
+    #[test]
+    fn alert_test() {
+
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        client.auth_via_user("chris@chris", "chris").unwrap();
+
+        let mut alert_result = client
+            .get()
+            .skip(0)
+            .limit(10)
+            .alerts()
+            .execute()
+            .unwrap();
+
+        assert_eq!(alert_result.status, 200);
     }
 
     #[test]
@@ -53,7 +74,7 @@ mod tests {
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
 
         let event_result = client
-            .post()
+            .create()
             .event_with_details(
                 "il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                 ILertEventType::ALERT,
@@ -72,7 +93,7 @@ mod tests {
         assert_eq!(event_result.status, 202);
 
         let event_comment_result = client
-            .post()
+            .create()
             .event_with_comment(
                 "il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                 Some("bratwurst".to_string()),
@@ -85,7 +106,7 @@ mod tests {
         assert_eq!(event_comment_result.status, 202);
 
         let resolve_result = client
-            .post()
+            .create()
             .event("il1api0220953b09684c9e4fe8972f0d5d8c9cde78d79b6cc8fd",
                    ILertEventType::RESOLVE, None,
                     Some("bratwurst".to_string()))

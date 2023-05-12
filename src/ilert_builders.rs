@@ -9,6 +9,9 @@ use crate::ilert::ILert;
 use crate::ilert_error::{ILertResult, ILertError};
 use std::error::Error;
 
+use base64::engine::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64;
+
 pub enum ILertEventType {
     ALERT,
     ACCEPT,
@@ -131,6 +134,8 @@ impl BaseRequestOptions {
 struct BaseRequestBuilder<'a> {
     _ilert: &'a ILert,
     options: BaseRequestOptions,
+    start_index: Option<i64>,
+    max_results: Option<i32>
 }
 
 impl<'a> BaseRequestBuilder<'a> {
@@ -139,6 +144,8 @@ impl<'a> BaseRequestBuilder<'a> {
         BaseRequestBuilder {
             _ilert,
             options: BaseRequestOptions::new(),
+            start_index: None,
+            max_results: None
         }
     }
 
@@ -199,7 +206,7 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
         Some(user) => match ilertref.auth_psw.clone() {
             Some(psw) => {
                 let basic_string = format!("{}:{}", user.as_str(), psw.as_str());
-                let basic_auth_string = format!("Basic {}", base64::encode(basic_string.as_str()));
+                let basic_auth_string = format!("Basic {}", BASE64.encode(basic_string.as_str()));
                 options.headers
                     .append("Authorization", HeaderValue::from_str(basic_auth_string.as_str()).unwrap());
             },
@@ -217,17 +224,6 @@ pub trait HeartbeatApiResource {
     fn heartbeat(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor>;
 }
 
-pub trait UserApiResource {
-    fn users(&mut self) -> Box<&dyn BaseRequestExecutor>;
-    fn user(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
-}
-
-pub trait ScheduleApiResource {
-    fn schedules(&mut self) -> Box<&dyn BaseRequestExecutor>;
-    fn schedule(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
-    fn schedule_shifts(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
-}
-
 pub trait EventApiResource {
 
     fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>, alert_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
@@ -237,6 +233,75 @@ pub trait EventApiResource {
             links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
 
     fn event_with_comment(&mut self, api_key: &str, alert_key: Option<String>, comments: Option<Vec<EventComment>>) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### USERS ### */
+
+pub trait UserGetApiResource {
+    fn users(&mut self) -> Box<&dyn BaseRequestExecutor>;
+    fn user(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### SCHEDULES ### */
+
+pub trait ScheduleGetApiResource {
+    fn schedules(&mut self) -> Box<&dyn BaseRequestExecutor>;
+    fn schedule(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+    fn schedule_shifts(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### ALERTS ### */
+
+pub trait AlertGetApiResource {
+    fn alerts(&mut self) -> Box<&dyn BaseRequestExecutor>;
+    fn alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait AlertPutApiResource {
+    // alert_raw() leaving alert() open for a typed implementation
+    fn alert_raw(&mut self, id: i64, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### INCIDENTS ### */
+
+pub trait IncidentGetApiResource {
+    fn incidents(&mut self) -> Box<&dyn BaseRequestExecutor>;
+    fn incident(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait IncidentPostApiResource {
+    // incident_raw() leaving incident() open for a typed implementation
+    fn incident_raw(&mut self, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait IncidentPutApiResource {
+    // incident_raw() leaving incident() open for a typed implementation
+    fn incident_raw(&mut self, id: i64, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait IncidentDeleteApiResource {
+    fn incident(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### SERVICES ### */
+
+pub trait ServiceGetApiResource {
+    fn services(&mut self) -> Box<&dyn BaseRequestExecutor>;
+    fn service(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait ServicePostApiResource {
+    // service_raw() leaving service() open for a typed implementation
+    fn service_raw(&mut self, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait ServicePutApiResource {
+    // service_raw() leaving service() open for a typed implementation
+    fn service_raw(&mut self, id: i64, entity: &serde_json::Value) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait ServiceDeleteApiResource {
+    fn service(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
 }
 
 /* ### GET ### */
@@ -252,6 +317,16 @@ impl<'a> GetRequestBuilder<'a> {
         GetRequestBuilder {
             builder: BaseRequestBuilder::new(_ilert),
         }
+    }
+
+    pub fn skip(mut self, start_index: i64) -> Self {
+        self.builder.start_index = Some(start_index);
+        self
+    }
+
+    pub fn limit(mut self, max_results: i32) -> Self {
+        self.builder.max_results = Some(max_results);
+        self
     }
 }
 
@@ -270,10 +345,19 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
         }
         let url = options.url.unwrap();
 
-        let response_result = self.builder._ilert.http_client
+        let mut request_builder = self.builder._ilert.http_client
             .get(url.as_str())
-            .headers(options.headers)
-            .send();
+            .headers(options.headers);
+
+        if let Some(start_index) = self.builder.start_index {
+            request_builder = request_builder.query(&[("start-index", start_index)]);
+        }
+
+        if let Some(max_results) = self.builder.max_results {
+            request_builder = request_builder.query(&[("max-results", max_results)]);
+        }
+
+        let response_result = request_builder.send();
 
         let mut response = match response_result {
             Ok(value) => value,
@@ -328,7 +412,7 @@ impl HeartbeatApiResource for GetRequestBuilder<'_> {
     }
 }
 
-impl UserApiResource for GetRequestBuilder<'_> {
+impl UserGetApiResource for GetRequestBuilder<'_> {
 
     fn users(&mut self) -> Box<&dyn BaseRequestExecutor> {
         self.builder.set_path("/users");
@@ -341,7 +425,7 @@ impl UserApiResource for GetRequestBuilder<'_> {
     }
 }
 
-impl ScheduleApiResource for GetRequestBuilder<'_> {
+impl ScheduleGetApiResource for GetRequestBuilder<'_> {
 
     fn schedules(&mut self) -> Box<&dyn BaseRequestExecutor> {
         self.builder.set_path("/schedules");
@@ -355,6 +439,45 @@ impl ScheduleApiResource for GetRequestBuilder<'_> {
 
     fn schedule_shifts(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
         self.builder.set_path(format!("/schedules/{}/shifts", id).as_str());
+        Box::new(self)
+    }
+}
+
+impl AlertGetApiResource for GetRequestBuilder<'_> {
+
+    fn alerts(&mut self) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path("/alerts");
+        Box::new(self)
+    }
+
+    fn alert(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/alerts/{}", id).as_str());
+        Box::new(self)
+    }
+}
+
+impl IncidentGetApiResource for GetRequestBuilder<'_> {
+
+    fn incidents(&mut self) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path("/incidents");
+        Box::new(self)
+    }
+
+    fn incident(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/incidents/{}", id).as_str());
+        Box::new(self)
+    }
+}
+
+impl ServiceGetApiResource for GetRequestBuilder<'_> {
+
+    fn services(&mut self) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path("/services");
+        Box::new(self)
+    }
+
+    fn service(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/services/{}", id).as_str());
         Box::new(self)
     }
 }
@@ -498,6 +621,233 @@ impl EventApiResource for PostRequestBuilder<'_> {
 
         self.builder.set_path("/events");
         self.builder.set_body(json_body.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+impl IncidentPostApiResource for PostRequestBuilder<'_> {
+
+    fn incident_raw(&mut self, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path("/incidents");
+        self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+impl ServicePostApiResource for PostRequestBuilder<'_> {
+
+    fn service_raw(&mut self, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path("/services");
+        self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+/* ### PUT ### */
+
+#[derive(Debug, Clone)]
+pub struct PutRequestBuilder<'a> {
+    builder: BaseRequestBuilder<'a>,
+}
+
+impl<'a> PutRequestBuilder<'a> {
+
+    pub fn new(_ilert: &'a ILert, body: &str) -> PutRequestBuilder<'a> {
+        PutRequestBuilder {
+            builder: BaseRequestBuilder::new(_ilert),
+        }
+    }
+}
+
+impl BaseRequestExecutor for PutRequestBuilder<'_> {
+
+    fn execute(&self) -> ILertResult<BaseRequestResult> {
+
+        let options_result = prepare_generic_request_builder(&self.builder);
+        if options_result.is_err() {
+            return Err(options_result.unwrap_err());
+        }
+        let options = options_result.unwrap();
+
+        if options.url.is_none() {
+            return Err(ILertError::new("Failed to build url."));
+        }
+        let url = options.url.unwrap();
+
+        let mut response_result = self.builder._ilert.http_client
+            .put(url.as_str())
+            .headers(options.headers);
+
+        response_result = match options.body {
+            Some(value) => response_result.body(value),
+            None => response_result,
+        };
+
+        let mut response = match response_result.send() {
+            Ok(value) => value,
+            Err(err) => {
+                return Err(ILertError::new(err.to_string().as_str()));
+            },
+        };
+
+        let response_status = response.status().clone();
+        let response_headers = response.headers().clone();
+
+        let body_raw = match response.text() {
+            Ok(value) => Some(value),
+            Err(_) => None,
+        };
+
+        let body_json = match body_raw.clone() {
+            Some(raw_value) =>
+                match response_headers.get("content-type") {
+                    Some(ct_value) =>
+                        if ct_value.eq(&"application/json") {
+                            let parsed_json_result = serde_json::from_str(raw_value.as_str());
+                            match parsed_json_result {
+                                Ok(parsed_json) => Some(parsed_json),
+                                Err(err) => {
+                                    return Err(ILertError::new(err.to_string().as_str()));
+                                },
+                            }
+                        } else {
+                            None
+                        },
+                    None => None,
+                },
+            None => None,
+        };
+
+        Ok(BaseRequestResult::new(
+            url,
+            response_status,
+            response_headers,
+            body_raw,
+            body_json,
+        ))
+    }
+}
+
+impl AlertPutApiResource for PutRequestBuilder<'_> {
+
+    fn alert_raw(&mut self, id: i64, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/alerts/{}", id).as_str());
+        self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+impl IncidentPutApiResource for PutRequestBuilder<'_> {
+
+    fn incident_raw(&mut self, id: i64, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/incidents/{}", id).as_str());
+        self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+impl ServicePutApiResource for PutRequestBuilder<'_> {
+
+    fn service_raw(&mut self, id: i64, entity: &Value) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/services/{}", id).as_str());
+        self.builder.set_body(entity.to_string().as_str());
+        Box::new(self)
+    }
+}
+
+/* ### DELETE ### */
+
+#[derive(Debug, Clone)]
+pub struct DeleteRequestBuilder<'a> {
+    builder: BaseRequestBuilder<'a>,
+}
+
+impl<'a> DeleteRequestBuilder<'a> {
+
+    pub fn new(_ilert: &'a ILert) -> DeleteRequestBuilder<'a> {
+        DeleteRequestBuilder {
+            builder: BaseRequestBuilder::new(_ilert),
+        }
+    }
+}
+
+impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
+
+    fn execute(&self) -> ILertResult<BaseRequestResult> {
+
+        let options_result = prepare_generic_request_builder(&self.builder);
+        if options_result.is_err() {
+            return Err(options_result.unwrap_err());
+        }
+        let options = options_result.unwrap();
+
+        if options.url.is_none() {
+            return Err(ILertError::new("Failed to build url."));
+        }
+        let url = options.url.unwrap();
+
+        let response_result = self.builder._ilert.http_client
+            .get(url.as_str())
+            .headers(options.headers)
+            .send();
+
+        let mut response = match response_result {
+            Ok(value) => value,
+            Err(err) => {
+                return Err(ILertError::new(err.to_string().as_str()));
+            },
+        };
+
+        let response_status = response.status().clone();
+        let response_headers = response.headers().clone();
+
+        let body_raw = match response.text() {
+            Ok(value) => Some(value.clone()),
+            Err(_) => None,
+        };
+
+        let body_json = match body_raw.clone() {
+            Some(raw_value) =>
+                match response_headers.get("content-type") {
+                    Some(ct_value) =>
+                        if ct_value.eq(&"application/json") {
+                            let parsed_json_result = serde_json::from_str(raw_value.as_str());
+                            match parsed_json_result {
+                                Ok(parsed_json) => Some(parsed_json),
+                                Err(err) => {
+                                    return Err(ILertError::new(err.to_string().as_str()));
+                                },
+                            }
+                        } else {
+                            None
+                        },
+                    None => None,
+                },
+            None => None,
+        };
+
+        Ok(BaseRequestResult::new(
+            url,
+            response_status,
+            response_headers,
+            body_raw,
+            body_json,
+        ))
+    }
+}
+
+impl IncidentDeleteApiResource for DeleteRequestBuilder<'_> {
+
+    fn incident(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/incidents/{}", id).as_str());
+        Box::new(self)
+    }
+}
+
+impl ServiceDeleteApiResource for DeleteRequestBuilder<'_> {
+
+    fn service(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/services/{}", id).as_str());
         Box::new(self)
     }
 }

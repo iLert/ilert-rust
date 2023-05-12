@@ -6,21 +6,21 @@
 [Rust 1.13]: https://blog.rust-lang.org/2016/11/10/Rust-1.13.html
 [Rust 1.31]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
 
-**The official iLert API bindings.**
+**The official ilert API bindings.**
 
 ## In action
 
 ```rust
 use ilert::ilert::ILert;
-use ilert::ilert_builders::{UserApiResource, EventApiResource, ILertEventType};
+use ilert::ilert_builders::{UserGetApiResource, EventApiResource, ILertEventType};
 
 let mut client = ILert::new().unwrap();
 client.auth_via_token("your-api-token").unwrap();
 
-// create a new alert
+// create a new alert via event
 
 client
-    .post()
+    .create()
     .event(
         "44c7afdc-0b3e-4344-b48a-5378a963231f",
         ILertEventType::ALERT,
@@ -31,6 +31,8 @@ client
 
 let user_result = client
     .get()
+    .skip(5)
+    .limit(10)
     .users()
     .execute()
     .unwrap();
@@ -42,10 +44,10 @@ client
     .heartbeat("43c7afdc-0b3e-4344-b48a-5379a963241f")
     .execute();
 
-// create detailed alert
+// create detailed alert via event
 
 client
-.post()
+.create()
 .event_with_details(
     "8972f0d5d8c9cde78d79b6cc8fd",
     ILertEventType::ALERT,
@@ -60,10 +62,10 @@ client
 .execute()
 .unwrap();
 
-// add comment to alert
+// add comment to alert via event
 
 client
-    .post()
+    .create()
     .event_with_comment(
         "8972f0d5d8c9cde78d79b6cc8fd",
         Some("bratwurst".to_string()),
@@ -71,10 +73,10 @@ client
     .execute()
     .unwrap();
 
-// resolve alert
+// resolve alert via event
 
 client
-    .post()
+    .create()
     .event("8972f0d5d8c9cde78d79b6cc8fd",
         ILertEventType::RESOLVE, None,
         Some("bratwurst".to_string()))
