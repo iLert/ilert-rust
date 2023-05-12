@@ -49,6 +49,8 @@ let user_result = client
     .get()
     .skip(5)
     .limit(10)
+    .filter("role", "RESPONDER")
+    .filter("role", "USER")
     .users()
     .execute()
     .unwrap();
