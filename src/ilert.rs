@@ -1,4 +1,3 @@
-use reqwest::blocking::Client;
 use reqwest::redirect::Policy;
 use reqwest::ClientBuilder;
 use reqwest::header;
@@ -17,7 +16,7 @@ pub struct ILert {
     pub api_token: Option<String>,
     pub auth_user: Option<String>,
     pub auth_psw: Option<String>,
-    pub http_client: Client,
+    pub http_client: reqwest::Client,
 }
 
 impl ILert {
@@ -60,10 +59,10 @@ impl ILert {
         headers
     }
 
-    fn get_http_client(timeout_sec: u64) -> reqwest::Result<Client> {
+    fn get_http_client(timeout_sec: u64) -> reqwest::Result<reqwest::Client> {
 
         let headers = ILert::get_default_headers();
-        let http_client_result = reqwest::blocking::Client::builder()
+        let http_client_result = reqwest::Client::builder()
             .timeout(Duration::from_secs(timeout_sec))
             .redirect(Policy::none())
             .default_headers(headers)

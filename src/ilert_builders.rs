@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::ilert::ILert;
 use crate::ilert_error::{ILertResult, ILertError};
 use std::error::Error;
-
+use async_trait::async_trait;
 use base64::engine::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 
@@ -191,8 +191,9 @@ impl BaseRequestResult {
     }
 }
 
+#[async_trait]
 pub trait BaseRequestExecutor {
-    fn execute(&self) -> ILertResult<BaseRequestResult>;
+    async fn execute(&self) -> ILertResult<BaseRequestResult>;
 }
 
 fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult<BaseRequestOptions> {
@@ -348,9 +349,10 @@ impl<'a> GetRequestBuilder<'a> {
     }
 }
 
+#[async_trait]
 impl BaseRequestExecutor for GetRequestBuilder<'_> {
 
-    fn execute(&self) -> ILertResult<BaseRequestResult> {
+    async fn execute(&self) -> ILertResult<BaseRequestResult> {
 
         let options_result = prepare_generic_request_builder(&self.builder);
         if options_result.is_err() {
@@ -379,7 +381,7 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             request_builder = request_builder.query(filters);
         }
 
-        let response_result = request_builder.send();
+        let response_result = request_builder.send().await;
 
         let mut response = match response_result {
             Ok(value) => value,
@@ -391,7 +393,7 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
         let response_status = response.status().clone();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text() {
+        let body_raw = match response.text().await {
             Ok(value) => Some(value.clone()),
             Err(_) => None,
         };
@@ -520,9 +522,10 @@ impl<'a> PostRequestBuilder<'a> {
     }
 }
 
+#[async_trait]
 impl BaseRequestExecutor for PostRequestBuilder<'_> {
 
-    fn execute(&self) -> ILertResult<BaseRequestResult> {
+    async fn execute(&self) -> ILertResult<BaseRequestResult> {
 
         let options_result = prepare_generic_request_builder(&self.builder);
         if options_result.is_err() {
@@ -544,7 +547,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
             None => response_result,
         };
 
-        let mut response = match response_result.send() {
+        let mut response = match response_result.send().await {
             Ok(value) => value,
             Err(err) => {
                 return Err(ILertError::new(err.to_string().as_str()));
@@ -554,7 +557,7 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
         let response_status = response.status().clone();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text() {
+        let body_raw = match response.text().await {
             Ok(value) => Some(value),
             Err(_) => None,
         };
@@ -681,9 +684,10 @@ impl<'a> PutRequestBuilder<'a> {
     }
 }
 
+#[async_trait]
 impl BaseRequestExecutor for PutRequestBuilder<'_> {
 
-    fn execute(&self) -> ILertResult<BaseRequestResult> {
+    async fn execute(&self) -> ILertResult<BaseRequestResult> {
 
         let options_result = prepare_generic_request_builder(&self.builder);
         if options_result.is_err() {
@@ -705,7 +709,7 @@ impl BaseRequestExecutor for PutRequestBuilder<'_> {
             None => response_result,
         };
 
-        let mut response = match response_result.send() {
+        let mut response = match response_result.send().await {
             Ok(value) => value,
             Err(err) => {
                 return Err(ILertError::new(err.to_string().as_str()));
@@ -715,7 +719,7 @@ impl BaseRequestExecutor for PutRequestBuilder<'_> {
         let response_status = response.status().clone();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text() {
+        let body_raw = match response.text().await {
             Ok(value) => Some(value),
             Err(_) => None,
         };
@@ -803,9 +807,10 @@ impl<'a> DeleteRequestBuilder<'a> {
     }
 }
 
+#[async_trait]
 impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
 
-    fn execute(&self) -> ILertResult<BaseRequestResult> {
+    async fn execute(&self) -> ILertResult<BaseRequestResult> {
 
         let options_result = prepare_generic_request_builder(&self.builder);
         if options_result.is_err() {
@@ -821,7 +826,8 @@ impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
         let response_result = self.builder._ilert.http_client
             .get(url.as_str())
             .headers(options.headers)
-            .send();
+            .send()
+            .await;
 
         let mut response = match response_result {
             Ok(value) => value,
@@ -833,7 +839,7 @@ impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
         let response_status = response.status().clone();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text() {
+        let body_raw = match response.text().await {
             Ok(value) => Some(value.clone()),
             Err(_) => None,
         };

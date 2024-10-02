@@ -1,5 +1,10 @@
 # ilert-rust CHANGELOG
 
+## 2024-10-02, Version 4.0.0
+
+* **BREAKING** moved from blocking to async client, you now need an async context and to `.await` the `.execute()` call
+* bumped dependencies
+
 ## 2023-05-13, Version 3.2.0
 
 * added filter(key, val) option for all get operations

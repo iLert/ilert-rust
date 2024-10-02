@@ -12,13 +12,13 @@ mod tests {
     use crate::ilert::ILert;
     use crate::ilert_builders::{UserGetApiResource, EventApiResource, ScheduleGetApiResource, HeartbeatApiResource, ILertEventType, ILertPriority, EventImage, EventComment, AlertGetApiResource, AlertPutApiResource};
 
-    #[test]
-    fn init() -> () {
+    #[tokio::test]
+    async fn init() -> () {
         env_logger::init();
     }
 
-    #[test]
-    fn user_test() {
+    #[tokio::test]
+    async fn user_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
@@ -29,13 +29,14 @@ mod tests {
             .limit(10)
             .users()
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(user_result.status, 200);
     }
 
-    #[test]
-    fn alert_test() {
+    #[tokio::test]
+    async fn alert_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
@@ -48,13 +49,14 @@ mod tests {
             .filter("states", "RESOLVED")
             .alerts()
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(alert_result.status, 200);
     }
 
-    #[test]
-    fn schedule_test() {
+    #[tokio::test]
+    async fn schedule_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
@@ -63,13 +65,14 @@ mod tests {
             .get()
             .schedule_shifts(99)
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(schedule_result.status, 404);
     }
 
-    #[test]
-    fn create_comment_and_resolve_event_test() {
+    #[tokio::test]
+    async fn create_comment_and_resolve_event_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
 
@@ -88,6 +91,7 @@ mod tests {
                 None
             )
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(event_result.status, 202);
@@ -101,6 +105,7 @@ mod tests {
                                             "a comment ![alt text picture](https://i.giphy.com/media/VRhsYYBw8AE36/giphy.webp) salut")])
             )
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(event_comment_result.status, 202);
@@ -111,13 +116,14 @@ mod tests {
                    ILertEventType::RESOLVE, None,
                     Some("bratwurst".to_string()))
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(resolve_result.status, 202);
     }
 
-    #[test]
-    fn heartbeat_test() {
+    #[tokio::test]
+    async fn heartbeat_test() {
 
         let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
 
@@ -125,6 +131,7 @@ mod tests {
             .get()
             .heartbeat("43c7afdc-0b3e-4344-b48a-5379a963241f")
             .execute()
+            .await
             .unwrap();
 
         assert_eq!(heartbeat_result.status, 202);

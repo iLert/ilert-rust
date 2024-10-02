@@ -25,7 +25,8 @@ client
         "44c7afdc-0b3e-4344-b48a-5378a963231f",
         ILertEventType::ALERT,
         "Host srv/mail01 is CRITICAL", None)
-    .execute();
+    .execute()
+    .await;
 
 // accept alert
 
@@ -33,6 +34,7 @@ let accept_result = client
     .update()
     .accept_alert(123)
     .execute()
+    .await
     .unwrap();
 
 // resolve alert
@@ -41,6 +43,7 @@ let resolve_result = client
     .update()
     .resolve_alert(123)
     .execute()
+    .await
     .unwrap();
 
 // fetch users
@@ -53,6 +56,7 @@ let user_result = client
     .filter("role", "USER")
     .users()
     .execute()
+    .await
     .unwrap();
 
 // ping a heartbeat
@@ -60,7 +64,8 @@ let user_result = client
 client
     .get()
     .heartbeat("43c7afdc-0b3e-4344-b48a-5379a963241f")
-    .execute();
+    .execute()
+    .await;
 
 // create detailed alert via event
 
@@ -78,6 +83,7 @@ client
     Some(json!({"hehe": "test"})),
     None)
 .execute()
+.await
 .unwrap();
 
 // add comment to alert via event
@@ -89,6 +95,7 @@ client
         Some("bratwurst".to_string()),
         Some(vec![EventComment::new("Peter Parker", "a comment ![alt text picture](https://i.giphy.com/media/VRhsYYBw8AE36/giphy.webp)")]))
     .execute()
+    .await
     .unwrap();
 
 // resolve alert via event
@@ -99,8 +106,13 @@ client
         ILertEventType::RESOLVE, None,
         Some("bratwurst".to_string()))
     .execute()
+    .await
     .unwrap();
 ```
+
+## Blocking
+
+If you are looking for a blocking version of the client pin the `3.x.x` versions in your Cargo.toml.
 
 ## Getting help
 
