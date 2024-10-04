@@ -192,7 +192,7 @@ impl BaseRequestResult {
 }
 
 #[async_trait]
-pub trait BaseRequestExecutor {
+pub trait BaseRequestExecutor: Send + Sync {
     async fn execute(&self) -> ILertResult<BaseRequestResult>;
 }
 
