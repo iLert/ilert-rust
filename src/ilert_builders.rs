@@ -112,7 +112,7 @@ impl ILertPriority {
 }
 
 #[derive(Debug, Clone)]
-struct BaseRequestOptions {
+pub struct BaseRequestOptions {
     pub path: Option<String>,
     pub url: Option<String>,
     pub headers: HeaderMap,
@@ -131,7 +131,7 @@ impl BaseRequestOptions {
 }
 
 #[derive(Debug, Clone)]
-struct BaseRequestBuilder<'a> {
+pub struct BaseRequestBuilder<'a> {
     _ilert: &'a ILert,
     pub options: BaseRequestOptions,
     pub start_index: Option<i64>,
@@ -510,7 +510,7 @@ impl ServiceGetApiResource for GetRequestBuilder<'_> {
 
 #[derive(Debug, Clone)]
 pub struct PostRequestBuilder<'a> {
-    builder: BaseRequestBuilder<'a>,
+    pub builder: BaseRequestBuilder<'a>,
 }
 
 impl<'a> PostRequestBuilder<'a> {
