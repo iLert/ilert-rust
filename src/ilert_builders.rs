@@ -113,10 +113,10 @@ impl ILertPriority {
 
 #[derive(Debug, Clone)]
 struct BaseRequestOptions {
-    path: Option<String>,
-    url: Option<String>,
-    headers: HeaderMap,
-    body: Option<String>,
+    pub path: Option<String>,
+    pub url: Option<String>,
+    pub headers: HeaderMap,
+    pub body: Option<String>,
 }
 
 impl BaseRequestOptions {
@@ -133,10 +133,10 @@ impl BaseRequestOptions {
 #[derive(Debug, Clone)]
 struct BaseRequestBuilder<'a> {
     _ilert: &'a ILert,
-    options: BaseRequestOptions,
-    start_index: Option<i64>,
-    max_results: Option<i32>,
-    filters: Option<Vec<(String, String)>>
+    pub options: BaseRequestOptions,
+    pub start_index: Option<i64>,
+    pub max_results: Option<i32>,
+    pub filters: Option<Vec<(String, String)>>
 }
 
 impl<'a> BaseRequestBuilder<'a> {
@@ -603,7 +603,10 @@ impl EventApiResource for PostRequestBuilder<'_> {
             "alertKey": alert_key
         });
 
-        self.builder.set_path("/events");
+        if self.builder.options.path.is_none() {
+            self.builder.set_path("/events");
+        }
+
         self.builder.set_body(json_body.to_string().as_str());
         Box::new(self)
     }
@@ -630,7 +633,10 @@ impl EventApiResource for PostRequestBuilder<'_> {
             "routingKey": routing_key
         });
 
-        self.builder.set_path("/events");
+        if self.builder.options.path.is_none() {
+            self.builder.set_path("/events");
+        }
+
         self.builder.set_body(json_body.to_string().as_str());
         Box::new(self)
     }
@@ -644,7 +650,10 @@ impl EventApiResource for PostRequestBuilder<'_> {
             "comments": comments,
         });
 
-        self.builder.set_path("/events");
+        if self.builder.options.path.is_none() {
+            self.builder.set_path("/events");
+        }
+
         self.builder.set_body(json_body.to_string().as_str());
         Box::new(self)
     }

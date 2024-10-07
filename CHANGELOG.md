@@ -1,5 +1,9 @@
 # ilert-rust CHANGELOG
 
+## 2024-10-07, Version 4.1.0
+
+* pub access to builder fields
+
 ## 2024-10-02, Version 4.0.0
 
 * **BREAKING** moved from blocking to async client, you now need an async context and to `.await` the `.execute()` call
