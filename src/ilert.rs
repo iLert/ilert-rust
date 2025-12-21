@@ -12,6 +12,7 @@ use std::error::Error;
 #[derive(Debug, Clone)]
 pub struct ILert {
     host: String,
+    hbt_host: String,
     api_ep: String,
     pub api_token: Option<String>,
     pub auth_user: Option<String>,
@@ -27,6 +28,7 @@ impl ILert {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
                 host: "https://api.ilert.com".to_string(),
+                hbt_host: "https://beat.ilert.com".to_string(),
                 api_ep: "/api".to_string(),
                 api_token: None,
                 auth_user: None,
@@ -36,12 +38,13 @@ impl ILert {
         }
     }
 
-    pub fn new_with_opts(host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
+    pub fn new_with_opts(host: Option<&str>, hbt_host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
         let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(25));
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
                 host: host.unwrap_or("https://api.ilert.com").to_string(),
+                hbt_host: hbt_host.unwrap_or("https://beat.ilert.com").to_string(),
                 api_ep: "/api".to_string(),
                 api_token: None,
                 auth_user: None,
@@ -84,6 +87,12 @@ impl ILert {
 
     pub fn build_url(&self, path: &str) -> String {
         let url = format!("{}{}{}", self.host.as_str(), self.api_ep.as_str(), path);
+        debug!("{}", url);
+        url
+    }
+
+    pub fn build_hbt_url(&self, path: &str) -> String {
+        let url = format!("{}{}{}", self.hbt_host.as_str(), self.api_ep.as_str(), path);
         debug!("{}", url);
         url
     }

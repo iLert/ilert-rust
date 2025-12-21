@@ -117,6 +117,7 @@ pub struct BaseRequestOptions {
     pub url: Option<String>,
     pub headers: HeaderMap,
     pub body: Option<String>,
+    pub use_hbt_host: bool,
 }
 
 impl BaseRequestOptions {
@@ -125,7 +126,8 @@ impl BaseRequestOptions {
             path: None,
             url: None,
             headers: HeaderMap::new(),
-            body: None
+            body: None,
+            use_hbt_host: false,
         }
     }
 }
@@ -205,7 +207,10 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
         return Err(ILertError::new("Failed to build url, path missing."));
     }
 
-    let url = ilertref.build_url(builder.options.path.as_ref().unwrap().as_str());
+    let url = match builder.options.use_hbt_host {
+        true => ilertref.build_hbt_url(builder.options.path.as_ref().unwrap().as_str()),
+        false => ilertref.build_url(builder.options.path.as_ref().unwrap().as_str())
+    };
     options.url = Some(url);
 
     match ilertref.api_token.clone() {
@@ -233,7 +238,12 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
 /* ### API Implementations ### */
 
 pub trait HeartbeatApiResource {
+    #[deprecated(since="5.0.0", note="please use `PingApiResource.ping` instead")]
     fn heartbeat(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor>;
+}
+
+pub trait PingApiResource {
+    fn ping(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor>;
 }
 
 pub trait EventApiResource {
@@ -316,6 +326,72 @@ pub trait ServicePutApiResource {
 
 pub trait ServiceDeleteApiResource {
     fn service(&mut self, id: i64) -> Box<&dyn BaseRequestExecutor>;
+}
+
+/* ### HEAD ### */
+
+#[derive(Debug, Clone)]
+pub struct HeadRequestBuilder<'a> {
+    builder: BaseRequestBuilder<'a>,
+}
+
+impl<'a> HeadRequestBuilder<'a> {
+
+    pub fn new(_ilert: &'a ILert) -> HeadRequestBuilder<'a> {
+        HeadRequestBuilder {
+            builder: BaseRequestBuilder::new(_ilert),
+        }
+    }
+}
+
+#[async_trait]
+impl BaseRequestExecutor for HeadRequestBuilder<'_> {
+
+    async fn execute(&self) -> ILertResult<BaseRequestResult> {
+
+        let options_result = prepare_generic_request_builder(&self.builder);
+        if options_result.is_err() {
+            return Err(options_result.unwrap_err());
+        }
+        let options = options_result.unwrap();
+
+        if options.url.is_none() {
+            return Err(ILertError::new("Failed to build url."));
+        }
+        let url = options.url.unwrap();
+
+        let mut request_builder = self.builder._ilert.http_client
+            .head(url.as_str())
+            .headers(options.headers);
+
+        let response_result = request_builder.send().await;
+
+        let mut response = match response_result {
+            Ok(value) => value,
+            Err(err) => {
+                return Err(ILertError::new(err.to_string().as_str()));
+            },
+        };
+
+        let response_status = response.status().clone();
+        let response_headers = response.headers().clone();
+
+        Ok(BaseRequestResult::new(
+            url,
+            response_status,
+            response_headers,
+            None,
+            None,
+        ))
+    }
+}
+
+impl PingApiResource for HeadRequestBuilder<'_> {
+    fn ping(&mut self, key: &str) -> Box<&dyn BaseRequestExecutor> {
+        self.builder.set_path(format!("/pings/{}", key).as_str());
+        self.builder.options.use_hbt_host = true;
+        Box::new(self)
+    }
 }
 
 /* ### GET ### */

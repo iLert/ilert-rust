@@ -20,7 +20,7 @@ mod tests {
     #[tokio::test]
     async fn user_test() {
 
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), None, Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
         let user_result = client
@@ -38,7 +38,7 @@ mod tests {
     #[tokio::test]
     async fn alert_test() {
 
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), None, Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
         let alert_result = client
@@ -58,7 +58,7 @@ mod tests {
     #[tokio::test]
     async fn schedule_test() {
 
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), None, Some(10)).unwrap();
         client.auth_via_user("chris@chris", "chris").unwrap();
 
         let schedule_result = client
@@ -74,7 +74,7 @@ mod tests {
     #[tokio::test]
     async fn create_comment_and_resolve_event_test() {
 
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), None, Some(10)).unwrap();
 
         let event_result = client
             .create()
@@ -125,7 +125,7 @@ mod tests {
     #[tokio::test]
     async fn heartbeat_test() {
 
-        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), Some(10)).unwrap();
+        let mut client = ILert::new_with_opts(Some("http://localhost:8080"), None, Some(10)).unwrap();
 
         let heartbeat_result = client
             .get()
