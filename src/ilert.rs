@@ -4,7 +4,8 @@ use reqwest::header;
 use std::time::Duration;
 use log::{debug};
 
-use crate::ilert_builders::{DeleteRequestBuilder, GetRequestBuilder, PostRequestBuilder, PutRequestBuilder};
+use crate::ilert_builders::{DeleteRequestBuilder, GetRequestBuilder, HeadRequestBuilder,
+                            PostRequestBuilder, PutRequestBuilder};
 use crate::ilert_error::{ILertResult, ILertError};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
@@ -95,6 +96,10 @@ impl ILert {
         let url = format!("{}{}{}", self.hbt_host.as_str(), self.api_ep.as_str(), path);
         debug!("{}", url);
         url
+    }
+
+    pub fn head(&self) -> HeadRequestBuilder<'_> {
+        HeadRequestBuilder::new(self)
     }
 
     pub fn get(&self) -> GetRequestBuilder<'_> {
