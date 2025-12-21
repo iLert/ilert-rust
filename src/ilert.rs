@@ -65,13 +65,13 @@ impl ILert {
     fn get_http_client(timeout_sec: u64) -> reqwest::Result<reqwest::Client> {
 
         let headers = ILert::get_default_headers();
-        let http_client_result = reqwest::Client::builder()
+        
+
+        reqwest::Client::builder()
             .timeout(Duration::from_secs(timeout_sec))
             .redirect(Policy::none())
             .default_headers(headers)
-            .build();
-
-        http_client_result
+            .build()
     }
 
     pub fn auth_via_token(&mut self, api_token: &str) -> ILertResult<&mut ILert> {
@@ -97,24 +97,24 @@ impl ILert {
         url
     }
 
-    pub fn get(&self) -> GetRequestBuilder {
+    pub fn get(&self) -> GetRequestBuilder<'_> {
         GetRequestBuilder::new(self)
     }
 
     #[deprecated(since="3.0.0", note="please use `create()` instead")]
-    pub fn post(&self) -> PostRequestBuilder {
+    pub fn post(&self) -> PostRequestBuilder<'_> {
         PostRequestBuilder::new(self, "{}")
     }
 
-    pub fn create(&self) -> PostRequestBuilder {
+    pub fn create(&self) -> PostRequestBuilder<'_> {
         PostRequestBuilder::new(self, "{}")
     }
 
-    pub fn update(&self) -> PutRequestBuilder {
+    pub fn update(&self) -> PutRequestBuilder<'_> {
         PutRequestBuilder::new(self, "{}")
     }
 
-    pub fn delete(&self) -> DeleteRequestBuilder {
+    pub fn delete(&self) -> DeleteRequestBuilder<'_> {
         DeleteRequestBuilder::new(self)
     }
 }

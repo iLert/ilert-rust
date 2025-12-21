@@ -74,11 +74,11 @@ impl EventComment {
 impl ILertEventType {
 
     pub fn as_str(&self) -> &str {
-        match self {
-            &ILertEventType::ALERT => "ALERT",
-            &ILertEventType::ACCEPT => "ACCEPT",
-            &ILertEventType::RESOLVE => "RESOLVE",
-            &ILertEventType::COMMENT => "COMMENT",
+        match *self {
+            ILertEventType::ALERT => "ALERT",
+            ILertEventType::ACCEPT => "ACCEPT",
+            ILertEventType::RESOLVE => "RESOLVE",
+            ILertEventType::COMMENT => "COMMENT",
         }
     }
 
@@ -96,9 +96,9 @@ impl ILertEventType {
 impl ILertPriority {
 
     pub fn as_str(&self) -> &str {
-        match self {
-            &ILertPriority::HIGH => "HIGH",
-            &ILertPriority::LOW => "LOW",
+        match *self {
+            ILertPriority::HIGH => "HIGH",
+            ILertPriority::LOW => "LOW",
         }
     }
 
@@ -118,6 +118,12 @@ pub struct BaseRequestOptions {
     pub headers: HeaderMap,
     pub body: Option<String>,
     pub use_hbt_host: bool,
+}
+
+impl Default for BaseRequestOptions {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BaseRequestOptions {
@@ -153,15 +159,15 @@ impl<'a> BaseRequestBuilder<'a> {
         }
     }
 
-    fn set_path(&mut self, path: &str) -> () {
+    fn set_path(&mut self, path: &str) {
         self.options.path = Some(path.to_string());
     }
 
-    fn set_body(&mut self, body: &str) -> () {
+    fn set_body(&mut self, body: &str) {
         self.options.body = Some(body.to_string());
     }
 
-    fn add_filter(&mut self, key: &str, val: &str) -> () {
+    fn add_filter(&mut self, key: &str, val: &str) {
 
         if self.filters.is_none() {
             self.filters = Some(Vec::new());
@@ -219,18 +225,12 @@ fn prepare_generic_request_builder (builder: &BaseRequestBuilder) -> ILertResult
         None => false,
     };
 
-    match ilertref.auth_user.clone() {
-        Some(user) => match ilertref.auth_psw.clone() {
-            Some(psw) => {
-                let basic_string = format!("{}:{}", user.as_str(), psw.as_str());
-                let basic_auth_string = format!("Basic {}", BASE64.encode(basic_string.as_str()));
-                options.headers
-                    .append("Authorization", HeaderValue::from_str(basic_auth_string.as_str()).unwrap());
-            },
-            None => (),
-        },
-        None => (),
-    };
+    if let Some(user) = ilertref.auth_user.clone() { if let Some(psw) = ilertref.auth_psw.clone() {
+        let basic_string = format!("{}:{}", user.as_str(), psw.as_str());
+        let basic_auth_string = format!("Basic {}", BASE64.encode(basic_string.as_str()));
+        options.headers
+            .append("Authorization", HeaderValue::from_str(basic_auth_string.as_str()).unwrap());
+    } };
 
     Ok(options)
 }
@@ -373,7 +373,7 @@ impl BaseRequestExecutor for HeadRequestBuilder<'_> {
             },
         };
 
-        let response_status = response.status().clone();
+        let response_status = response.status();
         let response_headers = response.headers().clone();
 
         Ok(BaseRequestResult::new(
@@ -466,7 +466,7 @@ impl BaseRequestExecutor for GetRequestBuilder<'_> {
             },
         };
 
-        let response_status = response.status().clone();
+        let response_status = response.status();
         let response_headers = response.headers().clone();
 
         let body_raw = match response.text().await {
@@ -630,13 +630,10 @@ impl BaseRequestExecutor for PostRequestBuilder<'_> {
             },
         };
 
-        let response_status = response.status().clone();
+        let response_status = response.status();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text().await {
-            Ok(value) => Some(value),
-            Err(_) => None,
-        };
+        let body_raw = (response.text().await).ok();
 
         let body_json = match body_raw.clone() {
             Some(raw_value) =>
@@ -691,10 +688,7 @@ impl EventApiResource for PostRequestBuilder<'_> {
                           alert_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
         links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
-        let priority = match priority {
-            Some(e_val) => Some(e_val.as_str().to_string()),
-            None => None
-        };
+        let priority = priority.map(|e_val| e_val.as_str().to_string());
 
         let json_body = json!({
             "apiKey": api_key,
@@ -801,13 +795,10 @@ impl BaseRequestExecutor for PutRequestBuilder<'_> {
             },
         };
 
-        let response_status = response.status().clone();
+        let response_status = response.status();
         let response_headers = response.headers().clone();
 
-        let body_raw = match response.text().await {
-            Ok(value) => Some(value),
-            Err(_) => None,
-        };
+        let body_raw = (response.text().await).ok();
 
         let body_json = match body_raw.clone() {
             Some(raw_value) =>
@@ -921,7 +912,7 @@ impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
             },
         };
 
-        let response_status = response.status().clone();
+        let response_status = response.status();
         let response_headers = response.headers().clone();
 
         let body_raw = match response.text().await {
