@@ -4,6 +4,7 @@ use reqwest::StatusCode;
 use serde_json::{Result, Value};
 use serde_json::json;
 use serde_derive::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::ilert::ILert;
 use crate::ilert_error::{ILertResult, ILertError};
@@ -67,6 +68,30 @@ impl EventComment {
         EventComment {
             creator: creator.to_string(),
             content: content.to_string()
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EventServiceRef {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alias: Option<String>,
+}
+
+impl EventServiceRef {
+    pub fn new(alias: &str) -> EventServiceRef {
+        EventServiceRef {
+            id: None,
+            alias: Some(alias.to_string()),
+        }
+    }
+
+    pub fn new_with_id(id: i64) -> EventServiceRef {
+        EventServiceRef {
+            id: Some(id),
+            alias: None,
         }
     }
 }
@@ -252,7 +277,8 @@ pub trait EventApiResource {
 
     fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>,
             alert_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
-            links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor>;
+            links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>,
+            severity: Option<i32>, labels: Option<HashMap<String, String>>, services: Option<Vec<EventServiceRef>>) -> Box<&dyn BaseRequestExecutor>;
 
     fn event_with_comment(&mut self, api_key: &str, alert_key: Option<String>, comments: Option<Vec<EventComment>>) -> Box<&dyn BaseRequestExecutor>;
 }
@@ -670,7 +696,7 @@ impl EventApiResource for PostRequestBuilder<'_> {
     fn event(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>, alert_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
 
         let json_body = json!({
-            "apiKey": api_key,
+            "integrationKey": api_key,
             "eventType": event_type.as_str(),
             "summary": summary,
             "alertKey": alert_key
@@ -686,21 +712,25 @@ impl EventApiResource for PostRequestBuilder<'_> {
 
     fn event_with_details(&mut self, api_key: &str, event_type: ILertEventType, summary: Option<String>,
                           alert_key: Option<String>, details: Option<String>, priority: Option<ILertPriority>, images: Option<Vec<EventImage>>,
-        links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>) -> Box<&dyn BaseRequestExecutor> {
+        links: Option<Vec<EventLink>>, custom_details: Option<serde_json::Value>, routing_key: Option<String>,
+        severity: Option<i32>, labels: Option<HashMap<String, String>>, services: Option<Vec<EventServiceRef>>) -> Box<&dyn BaseRequestExecutor> {
 
         let priority = priority.map(|e_val| e_val.as_str().to_string());
 
         let json_body = json!({
-            "apiKey": api_key,
+            "integrationKey": api_key,
             "eventType": event_type.as_str(),
             "summary": summary,
             "alertKey": alert_key,
             "details": details,
             "priority": priority,
+            "severity": severity,
             "images": images,
             "links": links,
             "customDetails": custom_details,
-            "routingKey": routing_key
+            "routingKey": routing_key,
+            "labels": labels,
+            "services": services
         });
 
         if self.builder.options.path.is_none() {
@@ -714,7 +744,7 @@ impl EventApiResource for PostRequestBuilder<'_> {
     fn event_with_comment(&mut self, api_key: &str, alert_key: Option<String>, comments: Option<Vec<EventComment>>) -> Box<&dyn BaseRequestExecutor> {
 
         let json_body = json!({
-            "apiKey": api_key,
+            "integrationKey": api_key,
             "eventType": ILertEventType::COMMENT.as_str(),
             "alertKey": alert_key,
             "comments": comments,
@@ -900,7 +930,7 @@ impl BaseRequestExecutor for DeleteRequestBuilder<'_> {
         let url = options.url.unwrap();
 
         let response_result = self.builder._ilert.http_client
-            .get(url.as_str())
+            .delete(url.as_str())
             .headers(options.headers)
             .send()
             .await;
