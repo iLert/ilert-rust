@@ -1,5 +1,12 @@
 # ilert-rust CHANGELOG
 
+## 2026-03-19, Version 5.1.0
+
+* bumped dependencies
+* added tests and wiremock tests for certian endpoints
+* added new escalation policy resolve and level endpoints
+* added user by email endpoint
+
 ## 2024-10-07, Version 4.1.0
 
 * pub access to builder fields
