@@ -287,6 +287,81 @@ async fn delete_service_sends_delete() {
     assert_eq!(result.status, 204);
 }
 
+// --- Escalation Policies ---
+
+#[tokio::test]
+async fn get_escalation_policy_resolve_by_routing_key() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/escalation-policies/resolve"))
+        .and(query_param("routing-key", "my-key"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "application/json")
+                .set_body_json(json!({"id": 1, "name": "Default"})),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    client.auth_via_token("tok").unwrap();
+
+    let result = client.get().escalation_policy_resolve("my-key").execute().await.unwrap();
+    assert_eq!(result.status, 200);
+    assert_eq!(result.body_json.unwrap()["name"], "Default");
+}
+
+#[tokio::test]
+async fn put_escalation_policy_level_raw() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("PUT"))
+        .and(path("/api/escalation-policies/10/levels/2"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "application/json")
+                .set_body_json(json!({"escalationTimeout": 5})),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    client.auth_via_token("tok").unwrap();
+
+    let rule = json!({"escalationTimeout": 5});
+    let result = client.update().escalation_policy_level_raw(10, 2, &rule).execute().await.unwrap();
+    assert_eq!(result.status, 200);
+    assert_eq!(result.body_json.unwrap()["escalationTimeout"], 5);
+}
+
+// --- User search by email ---
+
+#[tokio::test]
+async fn post_user_search_email() {
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/api/users/search-email"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "application/json")
+                .set_body_json(json!({"id": 42, "email": "test@example.com"})),
+        )
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    client.auth_via_token("tok").unwrap();
+
+    let result = client.create().user_search_email("test@example.com").execute().await.unwrap();
+    assert_eq!(result.status, 200);
+    assert_eq!(result.body_json.unwrap()["email"], "test@example.com");
+}
+
 // --- Ping (heartbeat) ---
 
 #[tokio::test]

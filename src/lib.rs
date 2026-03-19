@@ -377,6 +377,35 @@ mod tests {
         put.resolve_alert(99);
     }
 
+    // --- Escalation Policy builder paths ---
+
+    #[test]
+    fn get_escalation_policy_resolve_sets_path_and_filter() {
+        let client = ILert::new().unwrap();
+        let mut get = client.get();
+        get.escalation_policy_resolve("my-routing-key");
+    }
+
+    #[test]
+    fn put_escalation_policy_level_raw_sets_path_and_body() {
+        let client = ILert::new().unwrap();
+        let mut put = client.update();
+        let rule = json!({"escalationTimeout": 5});
+        put.escalation_policy_level_raw(10, 2, &rule);
+    }
+
+    // --- User search by email ---
+
+    #[test]
+    fn post_user_search_email_sets_path_and_body() {
+        let client = ILert::new().unwrap();
+        let mut post = client.create();
+        post.user_search_email("test@example.com");
+        let body = post.builder.options.body.unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&body).unwrap();
+        assert_eq!(parsed["email"], "test@example.com");
+    }
+
     // --- User-Agent header ---
 
     #[test]
