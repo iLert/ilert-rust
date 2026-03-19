@@ -57,7 +57,7 @@ impl ILert {
 
     fn get_default_headers() -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.append("User-Agent", HeaderValue::from_str("ilert-rust/4.1.1").unwrap());
+        headers.append("User-Agent", HeaderValue::from_str(&format!("ilert-rust/{}", env!("CARGO_PKG_VERSION"))).unwrap());
         headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
         headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
         headers
