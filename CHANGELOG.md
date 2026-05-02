@@ -4,6 +4,13 @@
 
 * added optional `caller_agent` parameter to `new_with_opts` to allow callers to identify themselves in the User-Agent header (e.g. `ilagent/0.9.0 ilert-rust/5.2.0`)
 
+## 2026-03-19, Version 5.1.0
+
+* bumped dependencies
+* added tests and wiremock tests for certian endpoints
+* added new escalation policy resolve and level endpoints
+* added user by email endpoint
+
 ## 2024-10-07, Version 4.1.0
 
 * pub access to builder fields
