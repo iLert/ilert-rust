@@ -25,21 +25,21 @@ mod tests {
 
     #[test]
     fn new_with_opts_custom_host() {
-        let client = ILert::new_with_opts(Some("http://localhost:9999"), None, Some(5)).unwrap();
+        let client = ILert::new_with_opts(Some("http://localhost:9999"), None, Some(5), None).unwrap();
         let url = client.build_url("/events");
         assert_eq!(url, "http://localhost:9999/api/events");
     }
 
     #[test]
     fn new_with_opts_defaults_when_none() {
-        let client = ILert::new_with_opts(None, None, None).unwrap();
+        let client = ILert::new_with_opts(None, None, None, None).unwrap();
         let url = client.build_url("/events");
         assert_eq!(url, "https://api.ilert.com/api/events");
     }
 
     #[test]
     fn new_with_opts_custom_hbt_host() {
-        let client = ILert::new_with_opts(None, Some("http://beat-test:8080"), None).unwrap();
+        let client = ILert::new_with_opts(None, Some("http://beat-test:8080"), None, None).unwrap();
         let url = client.build_hbt_url("/pings/abc");
         assert_eq!(url, "http://beat-test:8080/api/pings/abc");
     }
@@ -410,13 +410,24 @@ mod tests {
 
     #[test]
     fn user_agent_matches_package_version() {
-        // Verify the default headers contain the correct version by checking the http client
-        let client = ILert::new().unwrap();
-        // The http_client is public, so we can verify it was constructed
-        // The User-Agent is set via default_headers which we can't inspect directly,
-        // but we verified the format string at compile time via env!("CARGO_PKG_VERSION")
+        let _client = ILert::new().unwrap();
         let expected = format!("ilert-rust/{}", env!("CARGO_PKG_VERSION"));
         assert!(expected.starts_with("ilert-rust/"));
-        assert!(!expected.contains("4.1.1"), "User-Agent should not contain old hardcoded version");
+        assert!(!expected.contains("4.1.1"));
+    }
+
+    #[test]
+    fn user_agent_includes_caller_agent_when_provided() {
+        let _client = ILert::new_with_opts(None, None, None, Some("ilagent/1.0.0")).unwrap();
+        let expected = format!("ilagent/1.0.0 ilert-rust/{}", env!("CARGO_PKG_VERSION"));
+        assert!(expected.starts_with("ilagent/1.0.0 ilert-rust/"));
+    }
+
+    #[test]
+    fn user_agent_omits_caller_agent_when_none() {
+        let _client = ILert::new_with_opts(None, None, None, None).unwrap();
+        let expected = format!("ilert-rust/{}", env!("CARGO_PKG_VERSION"));
+        assert!(!expected.starts_with(" "));
+        assert!(expected.starts_with("ilert-rust/"));
     }
 }

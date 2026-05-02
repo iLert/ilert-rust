@@ -24,23 +24,11 @@ pub struct ILert {
 impl ILert {
 
     pub fn new() -> ILertResult<ILert> {
-        let http_client_result = ILert::get_http_client(25);
-        match http_client_result {
-            Err(err) => Err(ILertError::new(err.to_string().as_str())),
-            Ok(http_client) => Ok(ILert {
-                host: "https://api.ilert.com".to_string(),
-                hbt_host: "https://beat.ilert.com".to_string(),
-                api_ep: "/api".to_string(),
-                api_token: None,
-                auth_user: None,
-                auth_psw: None,
-                http_client,
-            })
-        }
+        ILert::new_with_opts(None, None, None, None)
     }
 
-    pub fn new_with_opts(host: Option<&str>, hbt_host: Option<&str>, timeout_sec: Option<u64>) -> ILertResult<ILert> {
-        let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(25));
+    pub fn new_with_opts(host: Option<&str>, hbt_host: Option<&str>, timeout_sec: Option<u64>, caller_agent: Option<&str>) -> ILertResult<ILert> {
+        let http_client_result = ILert::get_http_client(timeout_sec.unwrap_or(25), caller_agent);
         match http_client_result {
             Err(err) => Err(ILertError::new(err.to_string().as_str())),
             Ok(http_client) => Ok(ILert {
@@ -55,18 +43,20 @@ impl ILert {
         }
     }
 
-    fn get_default_headers() -> HeaderMap {
+    fn get_default_headers(caller_agent: Option<&str>) -> HeaderMap {
         let mut headers = HeaderMap::new();
-        headers.append("User-Agent", HeaderValue::from_str(&format!("ilert-rust/{}", env!("CARGO_PKG_VERSION"))).unwrap());
+        let ua = match caller_agent {
+            Some(caller) => format!("{} ilert-rust/{}", caller, env!("CARGO_PKG_VERSION")),
+            None => format!("ilert-rust/{}", env!("CARGO_PKG_VERSION")),
+        };
+        headers.append("User-Agent", HeaderValue::from_str(&ua).unwrap());
         headers.append("Accept", HeaderValue::from_str("application/json").unwrap());
         headers.append("Content-Type", HeaderValue::from_str("application/json").unwrap());
         headers
     }
 
-    fn get_http_client(timeout_sec: u64) -> reqwest::Result<reqwest::Client> {
-
-        let headers = ILert::get_default_headers();
-        
+    fn get_http_client(timeout_sec: u64, caller_agent: Option<&str>) -> reqwest::Result<reqwest::Client> {
+        let headers = ILert::get_default_headers(caller_agent);
 
         reqwest::Client::builder()
             .timeout(Duration::from_secs(timeout_sec))

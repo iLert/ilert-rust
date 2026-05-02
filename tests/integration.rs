@@ -18,7 +18,7 @@ async fn post_event_sends_correct_body() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
 
     let result = client
         .create()
@@ -41,7 +41,7 @@ async fn post_event_with_details_sends_all_fields() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
 
     let result = client
         .create()
@@ -78,7 +78,7 @@ async fn post_event_with_comment() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
 
     let result = client
         .create()
@@ -106,7 +106,7 @@ async fn post_event_custom_path_overrides_default() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
 
     let mut post = client.create();
     post.builder.options.path = Some("/v1/events/mqtt/custom-key".to_string());
@@ -133,7 +133,7 @@ async fn get_users_sends_get_request() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("test-token").unwrap();
 
     let result = client.get().users().execute().await.unwrap();
@@ -155,7 +155,7 @@ async fn get_user_by_id() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     let result = client.get().user(42).execute().await.unwrap();
     assert_eq!(result.status, 200);
     assert_eq!(result.body_json.unwrap()["id"], 42);
@@ -177,7 +177,7 @@ async fn get_alerts_with_filters() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client
@@ -206,7 +206,7 @@ async fn get_schedule_shifts() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     let result = client.get().schedule_shifts(7).execute().await.unwrap();
     assert_eq!(result.status, 200);
 }
@@ -224,7 +224,7 @@ async fn put_accept_alert() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.update().accept_alert(99).execute().await.unwrap();
@@ -242,7 +242,7 @@ async fn put_resolve_alert() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.update().resolve_alert(99).execute().await.unwrap();
@@ -262,7 +262,7 @@ async fn delete_incident_sends_delete() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.delete().incident(5).execute().await.unwrap();
@@ -280,7 +280,7 @@ async fn delete_service_sends_delete() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.delete().service(10).execute().await.unwrap();
@@ -305,7 +305,7 @@ async fn get_escalation_policy_resolve_by_routing_key() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.get().escalation_policy_resolve("my-key").execute().await.unwrap();
@@ -328,7 +328,7 @@ async fn put_escalation_policy_level_raw() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let rule = json!({"escalationTimeout": 5});
@@ -354,7 +354,7 @@ async fn post_user_search_email() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("tok").unwrap();
 
     let result = client.create().user_search_email("test@example.com").execute().await.unwrap();
@@ -376,7 +376,7 @@ async fn head_ping_uses_hbt_host() {
         .await;
 
     // pass mock as hbt_host
-    let client = ILert::new_with_opts(None, Some(&mock_server.uri()), Some(5)).unwrap();
+    let client = ILert::new_with_opts(None, Some(&mock_server.uri()), Some(5), None).unwrap();
 
     let result = client.head().ping("my-hbt-key").execute().await.unwrap();
     assert_eq!(result.status, 202);
@@ -400,7 +400,7 @@ async fn token_auth_sends_bearer_header() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_token("test-bearer-token").unwrap();
 
     let result = client.get().users().execute().await.unwrap();
@@ -424,7 +424,7 @@ async fn basic_auth_sends_encoded_header() {
         .mount(&mock_server)
         .await;
 
-    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let mut client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     client.auth_via_user("user", "pass").unwrap();
 
     let result = client.get().users().execute().await.unwrap();
@@ -444,7 +444,7 @@ async fn server_error_returns_status() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
 
     let result = client
         .create()
@@ -471,7 +471,7 @@ async fn response_body_parsed_as_json_when_content_type_matches() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     let result = client.get().alert(1).execute().await.unwrap();
 
     assert_eq!(result.status, 200);
@@ -496,12 +496,56 @@ async fn response_body_not_parsed_when_not_json() {
         .mount(&mock_server)
         .await;
 
-    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5)).unwrap();
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
     let result = client.get().alert(1).execute().await.unwrap();
 
     assert_eq!(result.status, 200);
     assert!(result.body_json.is_none());
     assert_eq!(result.body_raw.as_ref().unwrap(), "plain text response");
+}
+
+// --- User-Agent header ---
+
+#[tokio::test]
+async fn default_user_agent_is_ilert_rust() {
+    let mock_server = MockServer::start().await;
+
+    let expected_ua = format!("ilert-rust/{}", env!("CARGO_PKG_VERSION"));
+
+    Mock::given(method("POST"))
+        .and(path("/api/events"))
+        .and(header("User-Agent", expected_ua.as_str()))
+        .respond_with(ResponseTemplate::new(202))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), None).unwrap();
+    let result = client.create()
+        .event("k1", ILertEventType::ALERT, Some("test".to_string()), None)
+        .execute().await.unwrap();
+    assert_eq!(result.status, 202);
+}
+
+#[tokio::test]
+async fn caller_agent_prepended_to_user_agent() {
+    let mock_server = MockServer::start().await;
+
+    let expected_ua = format!("ilagent/1.0.0 ilert-rust/{}", env!("CARGO_PKG_VERSION"));
+
+    Mock::given(method("POST"))
+        .and(path("/api/events"))
+        .and(header("User-Agent", expected_ua.as_str()))
+        .respond_with(ResponseTemplate::new(202))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let client = ILert::new_with_opts(Some(&mock_server.uri()), None, Some(5), Some("ilagent/1.0.0")).unwrap();
+    let result = client.create()
+        .event("k1", ILertEventType::ALERT, Some("test".to_string()), None)
+        .execute().await.unwrap();
+    assert_eq!(result.status, 202);
 }
 
 // --- Execute without path fails ---
